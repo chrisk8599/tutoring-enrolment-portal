@@ -24,7 +24,7 @@ const GRADES = [
   "Year 12",
 ];
 
-export default function EnrolmentForm() {
+export default function EnrolmentForm({ center }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -125,8 +125,8 @@ export default function EnrolmentForm() {
             Enrolment Submitted Successfully!
           </h2>
           <p className="text-gray-600 mb-6">
-            Thank you for your enrolment. We'll review your submission and
-            contact you shortly.
+            Thank you for your enrolment at {center}. We'll review your
+            submission and contact you shortly.
           </p>
           <button
             onClick={() => setSubmitSuccess(false)}
@@ -145,11 +145,10 @@ export default function EnrolmentForm() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Tutoring Centre Enrolment.
+              Enrol at {center}
             </h1>
             <p className="text-gray-600">
-              Please fill in all details to enrol your child in our tutoring
-              program
+              Please fill in all details to enrol your child at {center}
             </p>
           </div>
 
