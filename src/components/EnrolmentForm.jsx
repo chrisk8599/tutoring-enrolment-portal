@@ -145,7 +145,7 @@ export default function EnrolmentForm() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Tutoring Centre Enrolment
+              Tutoring Centre Enrolment.
             </h1>
             <p className="text-gray-600">
               Please fill in all details to enrol your child in our tutoring
