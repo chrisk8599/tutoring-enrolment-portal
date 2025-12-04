@@ -1,3 +1,300 @@
+﻿=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\eslint.config.js ===
+
+
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs['recommended-latest'],
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\index.html ===
+
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>enrolment-portal</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\package.json ===
+
+
+{
+  "name": "enrolment-portal",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.81.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.66.0",
+    "react-router-dom": "^7.9.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "vite": "^7.2.2"
+  }
+}
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\postcss.config.js ===
+
+
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\README.md ===
+
+
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\tailwind.config.js ===
+
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\vercel.json ===
+
+
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\vite.config.js ===
+
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\App.css ===
+
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\App.jsx ===
+
+
+import { Routes, Route, Navigate } from "react-router-dom";
+import EnrolmentForm from "./components/EnrolmentForm";
+
+function App() {
+  return (
+    <Routes>
+      <Route
+        path="/cabra"
+        element={<EnrolmentForm center="Cabramatta ABC" />}
+      />
+      <Route
+        path="/liverpool"
+        element={<EnrolmentForm center="Liverpool Mr Pauls Tutoring" />}
+      />
+      <Route path="/" element={<Navigate to="/cabra" replace />} />
+    </Routes>
+  );
+}
+
+export default App;
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\index.css ===
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\main.jsx ===
+
+
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import "./index.css";
+import App from "./App.jsx";
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>
+);
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\components\EnrolmentForm.jsx ===
+
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "../lib/supabase";
@@ -80,31 +377,11 @@ export default function EnrolmentForm({ center }) {
       };
 
       // Insert into Supabase
-      const { data: insertedData, error } = await supabase
+      const { error } = await supabase
         .from("enrolments")
-        .insert([formattedData])
-        .select()
-        .single();
+        .insert([formattedData]);
 
       if (error) throw error;
-
-      // Send notification email
-      try {
-        const { data: emailData, error: emailError } =
-          await supabase.functions.invoke("send-enrollment-notification", {
-            body: { enrollmentId: insertedData.id },
-          });
-
-        if (emailError) {
-          console.error("Email notification failed:", emailError);
-          // Don't fail the whole submission if email fails
-        } else {
-          console.log("Notification email sent:", emailData);
-        }
-      } catch (emailError) {
-        console.error("Email notification error:", emailError);
-        // Continue even if email fails
-      }
 
       // Success!
       setSubmitSuccess(true);
@@ -483,3 +760,98 @@ export default function EnrolmentForm({ center }) {
     </div>
   );
 }
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\lib\supabase.js ===
+
+
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing Supabase environment variables");
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+
+
+
+
+=== C:\Users\Chris Kim\Desktop\Code\tutoring_enrolment\enrolment-portal\src\utils\formatters.js ===
+
+
+/**
+ * Capitalizes the first letter of each word
+ * Example: "john smith" -> "John Smith"
+ */
+export const capitalizeWords = (str) => {
+  if (!str) return "";
+  return str
+    .trim()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
+/**
+ * Converts email to lowercase
+ * Example: "John@EMAIL.com" -> "john@email.com"
+ */
+export const lowercaseEmail = (str) => {
+  if (!str) return "";
+  return str.trim().toLowerCase();
+};
+
+/**
+ * Validates Australian mobile number format
+ * Accepts: 0412345678, +61412345678, 04 1234 5678, etc.
+ */
+export const validateMobile = (mobile) => {
+  // Remove all spaces and special characters except +
+  const cleaned = mobile.replace(/[\s()-]/g, "");
+
+  // Check for Australian mobile patterns
+  const patterns = [
+    /^04\d{8}$/, // 0412345678
+    /^\+614\d{8}$/, // +61412345678
+    /^614\d{8}$/, // 61412345678
+  ];
+
+  return patterns.some((pattern) => pattern.test(cleaned));
+};
+
+/**
+ * Formats mobile number to consistent format
+ * Converts to: +61 4XX XXX XXX
+ */
+export const formatMobile = (mobile) => {
+  // Remove all spaces and special characters
+  let cleaned = mobile.replace(/[\s()-]/g, "");
+
+  // Convert to international format if needed
+  if (cleaned.startsWith("0")) {
+    cleaned = "+61" + cleaned.slice(1);
+  } else if (cleaned.startsWith("61") && !cleaned.startsWith("+61")) {
+    cleaned = "+" + cleaned;
+  } else if (!cleaned.startsWith("+")) {
+    cleaned = "+61" + cleaned;
+  }
+
+  // Format as +61 4XX XXX XXX
+  if (cleaned.startsWith("+614")) {
+    return cleaned.replace(/(\+61)(\d{3})(\d{3})(\d{3})/, "$1 $2 $3 $4");
+  }
+
+  return cleaned;
+};
+
+
+
+
+
