@@ -28,6 +28,7 @@ export default function EnrolmentForm({ center }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [showSecondaryParent, setShowSecondaryParent] = useState(false);
 
   const {
     register,
@@ -37,23 +38,23 @@ export default function EnrolmentForm({ center }) {
     reset,
   } = useForm();
 
-  // Handle name capitalization on blur
   const handleNameBlur = (fieldName, value) => {
-    const capitalized = capitalizeWords(value);
-    setValue(fieldName, capitalized);
+    setValue(fieldName, capitalizeWords(value));
   };
 
-  // Handle email lowercase on blur
   const handleEmailBlur = (fieldName, value) => {
-    const lowercase = lowercaseEmail(value);
-    setValue(fieldName, lowercase);
+    setValue(fieldName, lowercaseEmail(value));
   };
 
-  // Handle mobile format on blur
   const handleMobileBlur = (value) => {
     if (value && validateMobile(value)) {
-      const formatted = formatMobile(value);
-      setValue("parent_mobile", formatted);
+      setValue("parent_mobile", formatMobile(value));
+    }
+  };
+
+  const handleSecondaryMobileBlur = (value) => {
+    if (value && validateMobile(value)) {
+      setValue("secondary_parent_mobile", formatMobile(value));
     }
   };
 
@@ -62,7 +63,6 @@ export default function EnrolmentForm({ center }) {
     setSubmitError(null);
 
     try {
-      // Format data before submission
       const formattedData = {
         student_first_name: capitalizeWords(data.student_first_name),
         student_last_name: capitalizeWords(data.student_last_name),
@@ -77,9 +77,22 @@ export default function EnrolmentForm({ center }) {
         school: capitalizeWords(data.school),
         current_grade: data.current_grade,
         status: "pending",
+        source: "portal",
+        // Secondary parent — only include if shown
+        secondary_parent_first_name:
+          showSecondaryParent && data.secondary_parent_first_name
+            ? capitalizeWords(data.secondary_parent_first_name)
+            : null,
+        secondary_parent_last_name:
+          showSecondaryParent && data.secondary_parent_last_name
+            ? capitalizeWords(data.secondary_parent_last_name)
+            : null,
+        secondary_parent_mobile:
+          showSecondaryParent && data.secondary_parent_mobile
+            ? formatMobile(data.secondary_parent_mobile)
+            : null,
       };
 
-      // Insert into Supabase
       const { data: insertedData, error } = await supabase
         .from("enrolments")
         .insert([formattedData])
@@ -88,37 +101,34 @@ export default function EnrolmentForm({ center }) {
 
       if (error) throw error;
 
-      // Send notification email
       try {
-        const { data: emailData, error: emailError } =
-          await supabase.functions.invoke("send-enrollment-notification", {
-            body: { enrollmentId: insertedData.id },
-          });
-
-        if (emailError) {
-          console.error("Email notification failed:", emailError);
-          // Don't fail the whole submission if email fails
-        } else {
-          console.log("Notification email sent:", emailData);
-        }
+        const { error: emailError } = await supabase.functions.invoke(
+          "send-enrollment-notification",
+          { body: { enrollmentId: insertedData.id } },
+        );
+        if (emailError) console.error("Email notification failed:", emailError);
       } catch (emailError) {
         console.error("Email notification error:", emailError);
-        // Continue even if email fails
       }
 
-      // Success!
       setSubmitSuccess(true);
       reset();
+      setShowSecondaryParent(false);
     } catch (error) {
       console.error("Error submitting form:", error);
       setSubmitError(
         error.message ||
-          "An error occurred while submitting your enrolment. Please try again."
+          "An error occurred while submitting. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const inputClass =
+    "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-2";
+  const errorClass = "mt-1 text-sm text-red-600";
 
   if (submitSuccess) {
     return (
@@ -179,192 +189,326 @@ export default function EnrolmentForm({ center }) {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Student First Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Student First Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                {...register("student_first_name", {
-                  required: "Student first name is required",
-                  minLength: {
-                    value: 2,
-                    message: "Name must be at least 2 characters",
-                  },
-                })}
-                onBlur={(e) =>
-                  handleNameBlur("student_first_name", e.target.value)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter student's first name"
-              />
-              {errors.student_first_name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.student_first_name.message}
+            {/* ── Student Information ── */}
+            <div className="border-b border-gray-100 pb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Student Information
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelClass}>
+                    Student First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("student_first_name", {
+                      required: "Student first name is required",
+                      minLength: {
+                        value: 2,
+                        message: "Name must be at least 2 characters",
+                      },
+                    })}
+                    onBlur={(e) =>
+                      handleNameBlur("student_first_name", e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="Enter student's first name"
+                  />
+                  {errors.student_first_name && (
+                    <p className={errorClass}>
+                      {errors.student_first_name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Student Last Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("student_last_name", {
+                      required: "Student last name is required",
+                      minLength: {
+                        value: 2,
+                        message: "Name must be at least 2 characters",
+                      },
+                    })}
+                    onBlur={(e) =>
+                      handleNameBlur("student_last_name", e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="Enter student's last name"
+                  />
+                  {errors.student_last_name && (
+                    <p className={errorClass}>
+                      {errors.student_last_name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Current Grade <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    {...register("current_grade", {
+                      required: "Please select a grade",
+                    })}
+                    className={inputClass}
+                  >
+                    <option value="">Select a grade</option>
+                    {GRADES.map((grade) => (
+                      <option key={grade} value={grade}>
+                        {grade}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.current_grade && (
+                    <p className={errorClass}>{errors.current_grade.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    School <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("school", {
+                      required: "School name is required",
+                      minLength: {
+                        value: 3,
+                        message: "School name must be at least 3 characters",
+                      },
+                    })}
+                    onBlur={(e) => handleNameBlur("school", e.target.value)}
+                    className={inputClass}
+                    placeholder="Enter school name"
+                  />
+                  {errors.school && (
+                    <p className={errorClass}>{errors.school.message}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Primary Parent ── */}
+            <div className="border-b border-gray-100 pb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Primary Parent / Guardian
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelClass}>
+                    First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("parent_first_name", {
+                      required: "Parent first name is required",
+                      minLength: {
+                        value: 2,
+                        message: "Name must be at least 2 characters",
+                      },
+                    })}
+                    onBlur={(e) =>
+                      handleNameBlur("parent_first_name", e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="Enter parent's first name"
+                  />
+                  {errors.parent_first_name && (
+                    <p className={errorClass}>
+                      {errors.parent_first_name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Last Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("parent_last_name", {
+                      required: "Parent last name is required",
+                      minLength: {
+                        value: 2,
+                        message: "Name must be at least 2 characters",
+                      },
+                    })}
+                    onBlur={(e) =>
+                      handleNameBlur("parent_last_name", e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="Enter parent's last name"
+                  />
+                  {errors.parent_last_name && (
+                    <p className={errorClass}>
+                      {errors.parent_last_name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Mobile <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    {...register("parent_mobile", {
+                      required: "Mobile number is required",
+                      validate: (value) =>
+                        validateMobile(value) ||
+                        "Please enter a valid Australian mobile number",
+                    })}
+                    onBlur={(e) => handleMobileBlur(e.target.value)}
+                    className={inputClass}
+                    placeholder="0412 345 678"
+                  />
+                  {errors.parent_mobile && (
+                    <p className={errorClass}>{errors.parent_mobile.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    {...register("email_address", {
+                      required: "Email address is required",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Please enter a valid email address",
+                      },
+                    })}
+                    onBlur={(e) =>
+                      handleEmailBlur("email_address", e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="parent@example.com"
+                  />
+                  {errors.email_address && (
+                    <p className={errorClass}>{errors.email_address.message}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Secondary Parent (toggle) ── */}
+            <div className="border-b border-gray-100 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Secondary Parent / Guardian
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowSecondaryParent(!showSecondaryParent)}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                >
+                  {showSecondaryParent ? "− Remove" : "+ Add"}
+                </button>
+              </div>
+
+              {showSecondaryParent && (
+                <div className="space-y-4">
+                  <div>
+                    <label className={labelClass}>First Name</label>
+                    <input
+                      type="text"
+                      {...register("secondary_parent_first_name")}
+                      onBlur={(e) =>
+                        handleNameBlur(
+                          "secondary_parent_first_name",
+                          e.target.value,
+                        )
+                      }
+                      className={inputClass}
+                      placeholder="Optional"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Last Name</label>
+                    <input
+                      type="text"
+                      {...register("secondary_parent_last_name")}
+                      onBlur={(e) =>
+                        handleNameBlur(
+                          "secondary_parent_last_name",
+                          e.target.value,
+                        )
+                      }
+                      className={inputClass}
+                      placeholder="Optional"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Mobile</label>
+                    <input
+                      type="tel"
+                      {...register("secondary_parent_mobile", {
+                        validate: (value) =>
+                          !value ||
+                          validateMobile(value) ||
+                          "Please enter a valid Australian mobile number",
+                      })}
+                      onBlur={(e) =>
+                        e.target.value &&
+                        handleSecondaryMobileBlur(e.target.value)
+                      }
+                      className={inputClass}
+                      placeholder="Optional"
+                    />
+                    {errors.secondary_parent_mobile && (
+                      <p className={errorClass}>
+                        {errors.secondary_parent_mobile.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Email</label>
+                    <input
+                      type="email"
+                      {...register("secondary_email_address", {
+                        pattern: {
+                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                          message: "Please enter a valid email address",
+                        },
+                      })}
+                      onBlur={(e) =>
+                        handleEmailBlur(
+                          "secondary_email_address",
+                          e.target.value,
+                        )
+                      }
+                      className={inputClass}
+                      placeholder="Optional"
+                    />
+                    {errors.secondary_email_address && (
+                      <p className={errorClass}>
+                        {errors.secondary_email_address.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!showSecondaryParent && (
+                <p className="text-sm text-gray-400">
+                  Click "+ Add" to include a second parent or guardian.
                 </p>
               )}
             </div>
 
-            {/* Student Last Name */}
+            {/* ── Address ── */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Student Last Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                {...register("student_last_name", {
-                  required: "Student last name is required",
-                  minLength: {
-                    value: 2,
-                    message: "Name must be at least 2 characters",
-                  },
-                })}
-                onBlur={(e) =>
-                  handleNameBlur("student_last_name", e.target.value)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter student's last name"
-              />
-              {errors.student_last_name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.student_last_name.message}
-                </p>
-              )}
-            </div>
-
-            {/* Parent First Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Parent's First Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                {...register("parent_first_name", {
-                  required: "Parent first name is required",
-                  minLength: {
-                    value: 2,
-                    message: "Name must be at least 2 characters",
-                  },
-                })}
-                onBlur={(e) =>
-                  handleNameBlur("parent_first_name", e.target.value)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter parent's first name"
-              />
-              {errors.parent_first_name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.parent_first_name.message}
-                </p>
-              )}
-            </div>
-
-            {/* Parent Last Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Parent's Last Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                {...register("parent_last_name", {
-                  required: "Parent last name is required",
-                  minLength: {
-                    value: 2,
-                    message: "Name must be at least 2 characters",
-                  },
-                })}
-                onBlur={(e) =>
-                  handleNameBlur("parent_last_name", e.target.value)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter parent's last name"
-              />
-              {errors.parent_last_name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.parent_last_name.message}
-                </p>
-              )}
-            </div>
-
-            {/* Parent Mobile */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Parent Mobile <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                {...register("parent_mobile", {
-                  required: "Mobile number is required",
-                  validate: (value) =>
-                    validateMobile(value) ||
-                    "Please enter a valid Australian mobile number",
-                })}
-                onBlur={(e) => handleMobileBlur(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="0412 345 678 or +61 412 345 678"
-              />
-              {errors.parent_mobile && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.parent_mobile.message}
-                </p>
-              )}
-            </div>
-
-            {/* Email Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                {...register("email_address", {
-                  required: "Email address is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Please enter a valid email address",
-                  },
-                })}
-                onBlur={(e) => handleEmailBlur("email_address", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="parent@example.com"
-              />
-              {errors.email_address && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.email_address.message}
-                </p>
-              )}
-            </div>
-
-            {/* Secondary Email (Optional) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Secondary Email Address (Optional)
-              </label>
-              <input
-                type="email"
-                {...register("secondary_email_address", {
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Please enter a valid email address",
-                  },
-                })}
-                onBlur={(e) =>
-                  handleEmailBlur("secondary_email_address", e.target.value)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="secondary@example.com"
-              />
-              {errors.secondary_email_address && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.secondary_email_address.message}
-                </p>
-              )}
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={labelClass}>
                 Address <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -376,67 +520,15 @@ export default function EnrolmentForm({ center }) {
                   },
                 })}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="Enter your full address"
               />
               {errors.address && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.address.message}
-                </p>
+                <p className={errorClass}>{errors.address.message}</p>
               )}
             </div>
 
-            {/* School */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                School <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                {...register("school", {
-                  required: "School name is required",
-                  minLength: {
-                    value: 3,
-                    message: "School name must be at least 3 characters",
-                  },
-                })}
-                onBlur={(e) => handleNameBlur("school", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter school name"
-              />
-              {errors.school && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.school.message}
-                </p>
-              )}
-            </div>
-
-            {/* Current Grade */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Current Grade <span className="text-red-500">*</span>
-              </label>
-              <select
-                {...register("current_grade", {
-                  required: "Please select a grade",
-                })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="">Select a grade</option>
-                {GRADES.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </select>
-              {errors.current_grade && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.current_grade.message}
-                </p>
-              )}
-            </div>
-
-            {/* Submit Button */}
+            {/* ── Submit ── */}
             <div className="pt-4">
               <button
                 type="submit"
