@@ -73,7 +73,13 @@ export default function EnrolmentForm({ center }) {
         secondary_email_address: data.secondary_email_address
           ? lowercaseEmail(data.secondary_email_address)
           : null,
-        address: data.address.trim(),
+        address_street: data.address_street.trim(),
+        address_suburb: capitalizeWords(data.address_suburb),
+        address_state: data.address_state,
+        address_postcode: data.address_postcode,
+        // Keep combined address for backwards compat
+        address: `${data.address_street.trim()}, ${capitalizeWords(data.address_suburb)}, ${data.address_state} ${data.address_postcode}`,
+
         school: capitalizeWords(data.school),
         current_grade: data.current_grade,
         status: "pending",
@@ -507,25 +513,114 @@ export default function EnrolmentForm({ center }) {
             </div>
 
             {/* ── Address ── */}
-            <div>
-              <label className={labelClass}>
-                Address <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                {...register("address", {
-                  required: "Address is required",
-                  minLength: {
-                    value: 10,
-                    message: "Please enter a complete address",
-                  },
-                })}
-                rows={3}
-                className={inputClass}
-                placeholder="Enter your full address"
-              />
-              {errors.address && (
-                <p className={errorClass}>{errors.address.message}</p>
-              )}
+            <div className="border-b border-gray-100 pb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Address
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelClass}>
+                    Street <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("address_street", {
+                      required: "Street address is required",
+                    })}
+                    onBlur={(e) =>
+                      setValue("address_street", e.target.value.trim())
+                    }
+                    className={inputClass}
+                    placeholder="123 Example Street"
+                  />
+                  {errors.address_street && (
+                    <p className={errorClass}>
+                      {errors.address_street.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Suburb <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("address_suburb", {
+                      required: "Suburb is required",
+                    })}
+                    onBlur={(e) =>
+                      handleNameBlur("address_suburb", e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="Suburb"
+                  />
+                  {errors.address_suburb && (
+                    <p className={errorClass}>
+                      {errors.address_suburb.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>
+                      State <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      {...register("address_state", {
+                        required: "State is required",
+                      })}
+                      className={inputClass}
+                    >
+                      <option value="">Select...</option>
+                      {[
+                        "NSW",
+                        "VIC",
+                        "QLD",
+                        "WA",
+                        "SA",
+                        "TAS",
+                        "ACT",
+                        "NT",
+                      ].map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.address_state && (
+                      <p className={errorClass}>
+                        {errors.address_state.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Postcode <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register("address_postcode", {
+                        required: "Postcode is required",
+                        pattern: {
+                          value: /^\d{4}$/,
+                          message: "Enter a valid 4-digit postcode",
+                        },
+                      })}
+                      className={inputClass}
+                      placeholder="2000"
+                      maxLength={4}
+                    />
+                    {errors.address_postcode && (
+                      <p className={errorClass}>
+                        {errors.address_postcode.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* ── Submit ── */}
