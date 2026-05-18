@@ -4,10 +4,7 @@ import EnrolmentForm from "./components/EnrolmentForm";
 function App() {
   return (
     <Routes>
-      <Route
-        path="/cabra"
-        element={<EnrolmentForm center="Cabramatta ABC" />}
-      />
+      <Route path="/cabra" element={<EnrolmentForm center="Cabra ABC" />} />
       <Route
         path="/liverpool"
         element={<EnrolmentForm center="Liverpool Mr Pauls Tutoring" />}
