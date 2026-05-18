@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "../lib/supabase";
 import {
@@ -29,7 +29,7 @@ export default function EnrolmentForm({ center }) {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [showSecondaryParent, setShowSecondaryParent] = useState(false);
-
+  const [centerId, setCenterId] = useState(null);
   const {
     register,
     handleSubmit,
@@ -38,6 +38,17 @@ export default function EnrolmentForm({ center }) {
     reset,
   } = useForm();
 
+  useEffect(() => {
+    const fetchCenterId = async () => {
+      const { data, error } = await supabase
+        .from("tutoring_centers")
+        .select("id")
+        .eq("name", center)
+        .single();
+      if (!error && data) setCenterId(data.id);
+    };
+    fetchCenterId();
+  }, [center]);
   const handleNameBlur = (fieldName, value) => {
     setValue(fieldName, capitalizeWords(value));
   };
@@ -79,7 +90,7 @@ export default function EnrolmentForm({ center }) {
         address_postcode: data.address_postcode,
         // Keep combined address for backwards compat
         address: `${data.address_street.trim()}, ${capitalizeWords(data.address_suburb)}, ${data.address_state} ${data.address_postcode}`,
-
+        tutoring_center_id: centerId,
         school: capitalizeWords(data.school),
         current_grade: data.current_grade,
         status: "pending",
